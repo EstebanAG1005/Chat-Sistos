@@ -115,7 +115,7 @@ int main()
                 user_list.user_name = input;
             }
 
-            user_option.user_list = &user_list;
+            user_option.userlist = &user_list;
         }
                 else if (op == 3)
         {
