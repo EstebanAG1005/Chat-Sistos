@@ -167,7 +167,7 @@ void *client_handler(void *arg)
                         // Creamos el mensaje de respuesta de usuario
                         answer.op = 4;
                         answer.response_status_code = 200;
-                        answer.message = *user_option->message;
+                        answer.message = user_option->message;
                         answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 
@@ -191,7 +191,7 @@ void *client_handler(void *arg)
                         // Creamos el mensaje de respuesta de usuario
                         answer.op = 4;
                         answer.response_status_code = 200;
-                        answer.message = *user_option->message;
+                        answer.message = user_option->message;
                         answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 
