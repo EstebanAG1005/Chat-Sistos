@@ -117,10 +117,13 @@ int main()
 
             user_option.userlist = &user_list;
         }
-                else if (op == 3)
+        else if (op == 3)
         {
             user_option.op = 3;
             ChatSistOS__Status status = CHAT_SIST_OS__STATUS__INIT;
+            printf("Ingrese el nombre de usuario: ");
+            scanf("%s", input);
+            status.user_name = input;
             printf("Ingrese el estado (1: en línea, 2: ocupado, 3: desconectado): ");
             int new_status;
             scanf("%d", &new_status);

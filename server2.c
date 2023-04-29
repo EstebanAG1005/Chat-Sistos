@@ -152,6 +152,60 @@ void *client_handler(void *arg)
                 }
             }
         }
+        else if (operation == 4)
+        {
+            // Enviar mensaje
+            printf("Mensaje de %s: %s\n", client->username, user_option->message->message_content);
+
+            if (user_option->message->message_private)
+            {
+                // Mensaje privado
+                for (int i = 0; i < num_clients; i++)
+                {
+                    if (strcmp(clients[i].username, user_option->message->message_destination) == 0)
+                    {
+                        // Creamos el mensaje de respuesta de usuario
+                        answer.op = 4;
+                        answer.response_status_code = 200;
+                        answer.message = *user_option->message;
+                        answer_size = chat_sist_os__answer__get_packed_size(&answer);
+                        chat_sist_os__answer__pack(&answer, buffer);
+
+                        // Enviamos el mensaje al cliente
+                        bytes_sent = send(clients[i].client_fd, buffer, answer_size, 0);
+                        if (bytes_sent < 0)
+                        {
+                            perror("Error al enviar el mensaje al cliente");
+                        }
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // Mensaje global
+                for (int i = 0; i < num_clients; i++)
+                {
+                    if (clients[i].thread_id != 0 && clients[i].client_fd != client->client_fd)
+                    {
+                        // Creamos el mensaje de respuesta de usuario
+                        answer.op = 4;
+                        answer.response_status_code = 200;
+                        answer.message = *user_option->message;
+                        answer_size = chat_sist_os__answer__get_packed_size(&answer);
+                        chat_sist_os__answer__pack(&answer, buffer);
+
+                        // Enviamos el mensaje al cliente
+                        bytes_sent = send(clients[i].client_fd, buffer, answer_size, 0);
+                        if (bytes_sent < 0)
+                        {
+                            perror("Error al enviar el mensaje al cliente");
+                        }
+                    }
+                }
+            }
+        }
+
 
         chat_sist_os__user_option__free_unpacked(user_option, NULL);
     }
