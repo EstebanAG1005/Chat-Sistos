@@ -1,17 +1,17 @@
 # Chat-Sistos
 
-Compilar el Servidor
+### Compilar el Servidor
 
 gcc servidor.c chat.pb-c.c -o servidor -lprotobuf-c
 
-Compilar el Cliente
+### Compilar el Cliente
 
 gcc client.c chat.pb-c.c -o cliente -lprotobuf-c
 
-Correr Servidor
+### Correr Servidor
 ./servidor 8080
 
-Correr Cliente
+### Correr Cliente
 ./cliente
 
 
