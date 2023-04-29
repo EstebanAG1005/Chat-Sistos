@@ -117,48 +117,36 @@ int main()
 
             user_option.userlist = &user_list;
         }
-        else if (op == 3)
+                else if (op == 3)
         {
-            ChatSistOS__Status status = CHAT_SIST_OS__STATUS__INIT;
-            printf("Ingresa el nuevo estado (1: en línea, 2: ocupado, 3: desconectado): ");
-            scanf("%d", &temp);
-            getchar(); // Limpiar el buffer de entrada
-            status.user_state = temp;
-
             user_option.op = 3;
+            ChatSistOS__Status status = CHAT_SIST_OS__STATUS__INIT;
+            printf("Ingrese el estado (1: en línea, 2: ocupado, 3: desconectado): ");
+            int new_status;
+            scanf("%d", &new_status);
+            status.user_state = new_status;
             user_option.status = &status;
-
-            // Enviar la opción al servidor
-            send_option_and_receive_answer(socket_fd, &user_option, &answer);
-            printf("Respuesta del servidor: %s\n", answer.response_message);
         }
         else if (op == 4)
         {
+            user_option.op = 4;
             ChatSistOS__Message message = CHAT_SIST_OS__MESSAGE__INIT;
-            printf("¿Deseas enviar un mensaje privado? (1: Sí, 0: No): ");
-            scanf("%d", &temp);
-            getchar(); // Limpiar el buffer de entrada
-            message.message_private = temp;
+            printf("¿Desea enviar un mensaje privado? (1: sí, 0: no): ");
+            int private_message;
+            scanf("%d", &private_message);
+            message.message_private = private_message;
 
-            if (message.message_private)
+            if (private_message)
             {
-                printf("Ingresa el nombre de usuario del destinatario: ");
-                fgets(buffer, BUFFER_SIZE, stdin);
-                buffer[strcspn(buffer, "\n")] = '\0';
-                message.message_destination = buffer;
+                printf("Ingrese el nombre de usuario del destinatario: ");
+                scanf("%s", input);
+                message.message_destination = input;
             }
 
-            printf("Ingresa el contenido del mensaje: ");
-            fgets(buffer2, BUFFER_SIZE, stdin);
-            buffer2[strcspn(buffer2, "\n")] = '\0';
-            message.message_content = buffer2;
-
-            user_option.op = 4;
+            printf("Ingrese el contenido del mensaje: ");
+            scanf(" %[^\n]", input);
+            message.message_content = input;
             user_option.message = &message;
-
-            // Enviar la opción al servidor
-            send_option_and_receive_answer(socket_fd, &user_option, &answer);
-            printf("Respuesta del servidor: %s\n", answer.response_message);
         }
         else if (op == 5)
         {
