@@ -25,6 +25,8 @@ typedef struct {
 client_t clients[MAX_CLIENTS];
 int num_clients = 0;
 
+
+
 void *client_handler(void *arg)
 {
     client_t *client = (client_t *)arg;
@@ -107,7 +109,7 @@ void *client_handler(void *arg)
                         char estado[20] = "";
                         if (clients[i].user_state == 1)
                         {
-                            strcpy(estado, "Disponible");
+                            strcpy(estado, "Activo");
                         }
                         else if (clients[i].user_state == 2)
                         {
@@ -115,7 +117,7 @@ void *client_handler(void *arg)
                         }
                         else if (clients[i].user_state == 3)
                         {
-                            strcpy(estado, "Ausente");
+                            strcpy(estado, "Inactivo");
                         }
 
                         printf("Información del usuario actualizada:\n");
@@ -156,10 +158,13 @@ void *client_handler(void *arg)
         else if (operation == 4)
         {
             // Enviar mensaje
-            printf("Mensaje de %s: %s\n", client->username, user_option->message->message_content);
+            printf("Mensaje de %s", client->username);
 
-            if (user_option->message->message_private)
+            if (user_option->message->message_private == 1)
             {
+                printf(" para %s", user_option->message->message_destination);
+                printf(": %s\n", user_option->message->message_content);
+                
                 // Mensaje privado
                 for (int i = 0; i < num_clients; i++)
                 {
@@ -182,8 +187,9 @@ void *client_handler(void *arg)
                     }
                 }
             }
-            else
+            else if (user_option->message->message_private == 0)
             {
+                printf(": %s\n", user_option->message->message_content);
                 // Mensaje global
                 for (int i = 0; i < num_clients; i++)
                 {
@@ -206,6 +212,7 @@ void *client_handler(void *arg)
                 }
             }
         }
+
 
 
         chat_sist_os__user_option__free_unpacked(user_option, NULL);

@@ -34,7 +34,7 @@ void *receive_handler(void *arg)
         case 3: // Cambiar estado de usuario
             printf("%s\n", answer->response_message);
             break;
-        case 5: // Recibir mensaje
+        case 4: // Recibir mensaje
             printf("[%s]: %s\n", answer->message->message_sender, answer->message->message_content);
             break;
         }
@@ -80,13 +80,11 @@ int main()
 
     while (1)
     {
-        printf("\n-------------------------------------\n")
+        printf("\n-------------------------------------\n");
         printf("1. Crear nuevo usuario\n");
         printf("2. Ver usuarios conectados\n");
         printf("3. Cambiar estado de usuario\n");
-        printf("4. Enviar mensaje Privado\n");
-        printf("5. Ver informacion de usuario\n");
-        printf("6. Salir\n");
+        printf("4. Enviar mensaje\n");
         printf("Ingrese la opción que desea realizar: ");
         scanf("%d", &op);
 
@@ -105,83 +103,85 @@ int main()
         {
             user_option.op = 2;
             ChatSistOS__UserList user_list = CHAT_SIST_OS__USER_LIST__INIT;
-            printf("¿Desea ver la lista de todos los usuarios conectados? (1: sí, 0: no): ");
+            printf("¿Desea ver la lista de todos los usuarios conectados? (1: sí, 0:no): ");
             int list_all;
             scanf("%d", &list_all);
             user_list.list = list_all;
-
-            if (!list_all)
-            {
-                printf("Ingrese el nombre de usuario para obtener información: ");
-                scanf("%s", input);
-                user_list.user_name = input;
-            }
-
-            user_option.userlist = &user_list;
-        }
-        else if (op == 3)
+                    if (!list_all)
         {
-            user_option.op = 3;
-            ChatSistOS__Status *status = malloc(sizeof(ChatSistOS__Status));
-            chat_sist_os__status__init(status);
-            
-            printf("Ingrese el nombre de usuario: ");
+            printf("Ingrese el nombre de usuario para obtener información: ");
             scanf("%s", input);
-            status->user_name = strdup(input);
-
-            printf("Ingrese el estado (1: en línea, 2: ocupado, 3: desconectado): ");
-            int new_status;
-            scanf("%d", &new_status);
-            status->user_state = new_status;
-
-            user_option.status = status;
+            user_list.user_name = input;
         }
 
+        user_option.userlist = &user_list;
+    }
+    else if (op == 3)
+    {
+        user_option.op = 3;
+        ChatSistOS__Status *status = malloc(sizeof(ChatSistOS__Status));
+        chat_sist_os__status__init(status);
+        
+        printf("Ingrese el nombre de usuario: ");
+        scanf("%s", input);
+        status->user_name = strdup(input);
 
-        else if (op == 4)
+        printf("Ingrese el estado (1: en línea, 2: ocupado, 3: desconectado): ");
+        int new_status;
+        scanf("%d", &new_status);
+        status->user_state = new_status;
+
+        user_option.status = status;
+    }
+    else if (op == 4)
+    {
+        user_option.op = 4;
+        ChatSistOS__Message message = CHAT_SIST_OS__MESSAGE__INIT;
+        printf("¿Desea enviar un mensaje privado? (1: sí, 0: no): ");
+        int private_message;
+        scanf("%d", &private_message);
+        message.message_private = private_message;
+        if (private_message == 1)
         {
-            user_option.op = 4;
-            ChatSistOS__Message message = CHAT_SIST_OS__MESSAGE__INIT;
-            printf("¿Desea enviar un mensaje privado? (1: sí, 0: no): ");
-            int private_message;
-            scanf("%d", &private_message);
-            message.message_private = private_message;
-
-            if (private_message)
-            {
-                printf("Ingrese el nombre de usuario del destinatario: ");
-                scanf("%s", input);
-                message.message_destination = input;
-            }
+            printf("Ingrese el nombre de usuario del destinatario: ");
+            scanf("%s", input);
+            message.message_destination = strdup(input);
 
             printf("Ingrese el contenido del mensaje: ");
             scanf(" %[^\n]", input);
             message.message_content = input;
             user_option.message = &message;
         }
-        else if (op == 5)
+        if (private_message == 0)
         {
-            break;
-        }
-        else
-        {
-            printf("Opción no válida.\n");
-            continue;
-        }
-
-        int user_option_size = chat_sist_os__user_option__get_packed_size(&user_option);
-        chat_sist_os__user_option__pack(&user_option, buffer);
-
-        bytes_sent = send(client_fd, buffer, user_option_size, 0);
-        if (bytes_sent < 0)
-        {
-            perror("Error al enviar el mensaje al servidor");
+            printf("Ingrese el contenido del mensaje: ");
+            scanf(" %[^\n]", input);
+            message.message_content = input;
+            user_option.message = &message;
         }
     }
+    else if (op == 5)
+    {
+        break;
+    }    
+    else
+    {
+        printf("Opción no válida.\n");
+        continue;
+    }
 
-    close(client_fd);
+    int user_option_size = chat_sist_os__user_option__get_packed_size(&user_option);
+    chat_sist_os__user_option__pack(&user_option, buffer);
 
-    return 0;
+    bytes_sent = send(client_fd, buffer, user_option_size, 0);
+    if (bytes_sent < 0)
+    {
+        perror("Error al enviar el mensaje al servidor");
+    }
 }
 
+close(client_fd);
 
+return 0;
+
+}
