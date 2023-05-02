@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "chat.pb-c.h" // Incluir el archivo generado por protoc para Protocol Buffers
 
@@ -82,9 +83,10 @@ int main()
     {
         printf("\n-------------------------------------\n");
         printf("1. Crear nuevo usuario\n");
-        printf("2. Ver usuarios conectados\n");
+        printf("2. Ver usuarios \n");
         printf("3. Cambiar estado de usuario\n");
         printf("4. Enviar mensaje\n");
+        printf("5. Salir\n");
         printf("Ingrese la opción que desea realizar: ");
         scanf("%d", &op);
 
@@ -98,90 +100,108 @@ int main()
             scanf("%s", input);
             new_user.username = input;
             user_option.createuser = &new_user;
+
+            
         }
         else if (op == 2)
+        
         {
+            
+            
             user_option.op = 2;
             ChatSistOS__UserList user_list = CHAT_SIST_OS__USER_LIST__INIT;
-            printf("¿Desea ver la lista de todos los usuarios conectados? (1: sí, 0:no): ");
-            int list_all;
-            scanf("%d", &list_all);
-            user_list.list = list_all;
-                    if (!list_all)
+            printf("¿Desea ver la lista de todos los usuarios o un usuario específico? (1: todos, 2: específico): ");
+            int list_option;
+            scanf("%d", &list_option);
+
+            if (list_option == 1)
+            {
+                user_list.list = true;
+            }
+            else if (list_option == 2)
+            {
+                user_list.list = false;
+                printf("Ingrese el nombre de usuario para obtener información: ");
+                scanf("%s", input);
+                user_list.user_name = input;
+            }
+            else
+            {
+                printf("Opción inválida.\n");
+            }
+
+            user_option.userlist = &user_list;
+            
+        }
+        else if (op == 3)
         {
-            printf("Ingrese el nombre de usuario para obtener información: ");
+            user_option.op = 3;
+            ChatSistOS__Status *status = malloc(sizeof(ChatSistOS__Status));
+            chat_sist_os__status__init(status);
+            
+            printf("Ingrese el nombre de usuario: ");
             scanf("%s", input);
-            user_list.user_name = input;
+            status->user_name = strdup(input);
+
+            printf("Ingrese el estado (1: Activo, 2: Ocupado, 3: Inactivo): ");
+            int new_status;
+            scanf("%d", &new_status);
+            status->user_state = new_status;
+
+            user_option.status = status;
+            
         }
 
-        user_option.userlist = &user_list;
-    }
-    else if (op == 3)
-    {
-        user_option.op = 3;
-        ChatSistOS__Status *status = malloc(sizeof(ChatSistOS__Status));
-        chat_sist_os__status__init(status);
         
-        printf("Ingrese el nombre de usuario: ");
-        scanf("%s", input);
-        status->user_name = strdup(input);
-
-        printf("Ingrese el estado (1: en línea, 2: ocupado, 3: desconectado): ");
-        int new_status;
-        scanf("%d", &new_status);
-        status->user_state = new_status;
-
-        user_option.status = status;
-    }
-    else if (op == 4)
-    {
-        user_option.op = 4;
-        ChatSistOS__Message message = CHAT_SIST_OS__MESSAGE__INIT;
-        printf("¿Desea enviar un mensaje privado? (1: sí, 0: no): ");
-        int private_message;
-        scanf("%d", &private_message);
-        message.message_private = private_message;
-        if (private_message == 1)
+            
+        else if (op == 4)
         {
-            printf("Ingrese el nombre de usuario del destinatario: ");
-            scanf("%s", input);
-            message.message_destination = strdup(input);
+            user_option.op = 4;
+            ChatSistOS__Message message = CHAT_SIST_OS__MESSAGE__INIT;
+            printf("¿Desea enviar un mensaje privado? (1: sí, 0: no): ");
+            int private_message;
+            scanf("%d", &private_message);
+            message.message_private = private_message;
+            if (private_message == 1)
+            {
+                printf("Ingrese el nombre de usuario del destinatario: ");
+                scanf("%s", input);
+                message.message_destination = strdup(input);
 
-            printf("Ingrese el contenido del mensaje: ");
-            scanf(" %[^\n]", input);
-            message.message_content = input;
-            user_option.message = &message;
+                printf("Ingrese el contenido del mensaje: ");
+                scanf(" %[^\n]", input);
+                message.message_content = input;
+                user_option.message = &message;
+            }
+            if (private_message == 0)
+            {
+                printf("Ingrese el contenido del mensaje: ");
+                scanf(" %[^\n]", input);
+                message.message_content = input;
+                user_option.message = &message;
+            }
         }
-        if (private_message == 0)
+        else if (op == 5)
         {
-            printf("Ingrese el contenido del mensaje: ");
-            scanf(" %[^\n]", input);
-            message.message_content = input;
-            user_option.message = &message;
+            close(client_fd);
+            break;
+        }    
+        else
+        {
+            printf("Opción no válida.\n");
+            continue;
+        }
+
+        int user_option_size = chat_sist_os__user_option__get_packed_size(&user_option);
+        chat_sist_os__user_option__pack(&user_option, buffer);
+
+        bytes_sent = send(client_fd, buffer, user_option_size, 0);
+        if (bytes_sent < 0)
+        {
+            perror("Error al enviar el mensaje al servidor");
         }
     }
-    else if (op == 5)
-    {
-        break;
-    }    
-    else
-    {
-        printf("Opción no válida.\n");
-        continue;
-    }
 
-    int user_option_size = chat_sist_os__user_option__get_packed_size(&user_option);
-    chat_sist_os__user_option__pack(&user_option, buffer);
-
-    bytes_sent = send(client_fd, buffer, user_option_size, 0);
-    if (bytes_sent < 0)
-    {
-        perror("Error al enviar el mensaje al servidor");
-    }
-}
-
-close(client_fd);
-
-return 0;
+    return 0;
 
 }

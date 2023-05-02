@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "chat.pb-c.h" // Incluir el archivo generado por protoc para Protocol Buffers
 
@@ -57,8 +58,6 @@ void *client_handler(void *arg)
 
             // Creamos el mensaje de respuesta de usuario
             answer.response_message = "Usuario registrado exitosamente.";
-            answer_size = chat_sist_os__answer__get_packed_size(&answer);
-            chat_sist_os__answer__pack(&answer, buffer);
 
             // Enviamos el mensaje al cliente
             bytes_sent = send(client_fd, buffer, answer_size, 0);
@@ -68,32 +67,72 @@ void *client_handler(void *arg)
             }
 
             printf("Nuevo usuario creado: %s\n", client->username);
+            answer.response_message = malloc(128);
+            sprintf(answer.response_message, "Nuevo usuario creado: %s", client->username);
+
         }
         else if (operation == 2)
         {
             // Ver usuarios conectados
-            printf("Usuario %s solicitó lista de usuarios conectados\n", client->username);
-            printf("Lista de usuarios conectados:\n");
-            for (int i = 0; i < num_clients; i++)
+            printf("Usuario %s solicitó lista de usuarios\n", client->username);
+
+            // Verificar la opción seleccionada por el usuario
+            if (user_option->userlist->list)
             {
-                if (clients[i].thread_id != 0)
+                // Mostrar lista de todos los usuarios
+                printf("Lista de todos los usuarios:\n");
+                for (int i = 0; i < num_clients; i++)
                 {
-                    printf("- %s\n", clients[i].username);
+                    if (clients[i].thread_id != 0)
+                    {
+                        printf("- Nombre: %s\n", clients[i].username);
+                        //printf("- Estado: %d\n", clients[i].state);
+                    }
+                }
+            }
+            else
+            {
+                // Mostrar información de un usuario específico
+                const char *target_username = user_option->userlist->user_name;
+                bool user_found = false;
+
+                printf("Información del usuario: %s\n", target_username);
+
+                for (int i = 0; i < num_clients; i++)
+                {
+                    if (strcmp(clients[i].username, target_username) == 0)
+                    {
+                        printf("- Nombre: %s\n", clients[i].username);
+                        //cprintf("- Estado: %d\n", clients[i].state);
+                        user_found = true;
+                        break;
+                    }
+                }
+
+                if (!user_found)
+                {
+                    printf("Usuario no encontrado: %s\n", target_username);
                 }
             }
 
             // Creamos el mensaje de respuesta de usuario
-            answer.response_message = "Usuarios conectados mostrados.";
-            answer_size = chat_sist_os__answer__get_packed_size(&answer);
-            chat_sist_os__answer__pack(&answer, buffer);
+            ChatSistOS__Answer answer = CHAT_SIST_OS__ANSWER__INIT;
+            answer.op = 2;
+            answer.response_status_code = 200;
 
-            // Enviamos el mensaje al cliente
-            bytes_sent = send(client_fd, buffer, answer_size, 0);
+            // Enviamos la respuesta al cliente
+            size_t answer_size = chat_sist_os__answer__get_packed_size(&answer);
+            uint8_t *buffer = malloc(answer_size);
+            chat_sist_os__answer__pack(&answer, buffer);
+            ssize_t bytes_sent = send(client_fd, buffer, answer_size, 0);
             if (bytes_sent < 0)
             {
                 perror("Error al enviar el mensaje al cliente");
             }
+
+            free(buffer);
         }
+
         else if (operation == 3)
         {
             if (user_option->status != NULL && strlen(user_option->status->user_name) > 0)
