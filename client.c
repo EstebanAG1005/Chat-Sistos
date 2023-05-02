@@ -80,11 +80,13 @@ int main()
 
     while (1)
     {
+        printf("\n-------------------------------------\n")
         printf("1. Crear nuevo usuario\n");
         printf("2. Ver usuarios conectados\n");
         printf("3. Cambiar estado de usuario\n");
-        printf("4. Enviar mensaje\n");
-        printf("5. Salir\n");
+        printf("4. Enviar mensaje Privado\n");
+        printf("5. Ver informacion de usuario\n");
+        printf("6. Salir\n");
         printf("Ingrese la opción que desea realizar: ");
         scanf("%d", &op);
 
@@ -120,16 +122,22 @@ int main()
         else if (op == 3)
         {
             user_option.op = 3;
-            ChatSistOS__Status status = CHAT_SIST_OS__STATUS__INIT;
+            ChatSistOS__Status *status = malloc(sizeof(ChatSistOS__Status));
+            chat_sist_os__status__init(status);
+            
             printf("Ingrese el nombre de usuario: ");
             scanf("%s", input);
-            status.user_name = input;
+            status->user_name = strdup(input);
+
             printf("Ingrese el estado (1: en línea, 2: ocupado, 3: desconectado): ");
             int new_status;
             scanf("%d", &new_status);
-            status.user_state = new_status;
-            user_option.status = &status;
+            status->user_state = new_status;
+
+            user_option.status = status;
         }
+
+
         else if (op == 4)
         {
             user_option.op = 4;
@@ -177,4 +185,3 @@ int main()
 }
 
 
-       

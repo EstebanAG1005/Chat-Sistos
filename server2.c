@@ -94,13 +94,16 @@ void *client_handler(void *arg)
         }
         else if (operation == 3)
         {
-                        if (user_option->userlist != NULL && strlen(user_option->userlist->user_name) > 0)
+            if (user_option->status != NULL && strlen(user_option->status->user_name) > 0)
             {
                 for (int i = 0; i < num_clients; i++)
                 {
-                    if (strcmp(clients[i].username, user_option->userlist->user_name) == 0)
+                    if (strcmp(clients[i].username, user_option->status->user_name) == 0)
                     {
-                        // Mostrar informacion
+                        // Cambiar estado del usuario
+                        clients[i].user_state = user_option->status->user_state;
+
+                        // Mostrar información actualizada
                         char estado[20] = "";
                         if (clients[i].user_state == 1)
                         {
@@ -115,12 +118,13 @@ void *client_handler(void *arg)
                             strcpy(estado, "Ausente");
                         }
 
-                        printf("Información del usuario solicitado:\n");
+                        printf("Información del usuario actualizada:\n");
                         printf("Nombre de usuario: %s\n", clients[i].username);
-                        printf("Estado: %s\n", estado);
+                        printf("Nuevo estado: %s\n", estado);
+
 
                         // Creamos el mensaje de respuesta de usuario
-                        answer.response_message = "Información del usuario mostrada.";
+                        answer.response_message = "Estado cambiado.";
                         answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 
@@ -136,11 +140,8 @@ void *client_handler(void *arg)
             }
             else
             {
-                // Cambiar estado del usuario
-                client->user_state = user_option->status->user_state;
-
-                // Creamos el mensaje de respuesta de usuario
-                answer.response_message = "Estado cambiado.";
+                // Opción inválida
+                answer.response_message = "Opción inválida.";
                 answer_size = chat_sist_os__answer__get_packed_size(&answer);
                 chat_sist_os__answer__pack(&answer, buffer);
 
