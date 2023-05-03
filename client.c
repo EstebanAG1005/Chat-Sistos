@@ -46,8 +46,14 @@ void *receive_handler(void *arg)
     return NULL;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc != 3)
+    {
+        fprintf(stderr, "Uso: %s <IPdelservidor> <puertodelservidor>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
     int client_fd;
     struct sockaddr_in server_addr;
     pthread_t thread_id;
@@ -60,8 +66,8 @@ int main()
     }
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = inet_addr(argv[1]);
+    server_addr.sin_port = htons(atoi(argv[2]));
 
     if (connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
