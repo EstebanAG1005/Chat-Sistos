@@ -103,8 +103,22 @@ void *client_handler(void *arg)
             {
                 // Mostrar lista de todos los usuarios
                 printf("Lista de todos los usuarios:\n");
+                char response_message[256]; // Aumentamos el tamaño del buffer para almacenar todos los mensajes
+                strcpy(response_message, "Lista de todos los usuarios:\n");
+
+                for (int i = 0; i < num_clients; i++)
+                {
+                    if (clients[i].thread_id != 0)
+                    {
+                        printf("- Nombre: %s\n", clients[i].username);
+                        strcat(response_message, "- Nombre: ");
+                        strcat(response_message, clients[i].username);
+                        strcat(response_message, "\n");
+                    }
+                }
+
                 answer.response_status_code = 200;
-                answer.response_message = "Lista de todos los usuarios:\n.";
+                answer.response_message = response_message;
                 answer_size = chat_sist_os__answer__get_packed_size(&answer);
                 chat_sist_os__answer__pack(&answer, buffer);
 
@@ -114,31 +128,6 @@ void *client_handler(void *arg)
                 {
                     perror("Error al enviar el mensaje al cliente");
                 }
-
-                for (int i = 0; i < num_clients; i++)
-                {
-                    if (clients[i].thread_id != 0)
-                    {
-                        printf("- Nombre: %s\n", clients[i].username);
-                        answer.response_status_code = 200;
-                        char message[128];
-                        sprintf(message, "- Nombre: %s\n", clients[i].username);
-                        answer.response_message = message;;
-                        answer_size = chat_sist_os__answer__get_packed_size(&answer);
-                        chat_sist_os__answer__pack(&answer, buffer);
-
-                        // Enviamos el mensaje al cliente
-                        bytes_sent = send(client_fd, buffer, answer_size, 0);
-                        if (bytes_sent < 0)
-                        {
-                            perror("Error al enviar el mensaje al cliente");
-                        }
-
-                        
-                        //printf("- Estado: %d\n", clients[i].state);
-                    }
-                }
-
             }
             else
             {
