@@ -31,6 +31,13 @@ void *receive_handler(void *arg)
         switch (answer->op)
         {
         case 1: // Crear nuevo usuario
+            if (answer->response_status_code == 400) {
+                printf("Error: %s\n", answer->response_message);
+                printf("Por favor, intente con un nombre de usuario diferente.\n");
+            } else {
+                printf("%s\n", answer->response_message);
+            }
+            break;
         case 2: // Ver usuarios conectados
             printf("%s\n", answer->response_message);
             break;
@@ -101,17 +108,16 @@ int main(int argc, char *argv[])
 
         chat_sist_os__user_option__init(&user_option);
 
-        if (op == 1)
-        {
+        if (op == 1) {
             user_option.op = 1;
             ChatSistOS__NewUser new_user = CHAT_SIST_OS__NEW_USER__INIT;
             printf("Ingrese el nombre de usuario: ");
             scanf("%s", input);
             new_user.username = input;
             user_option.createuser = &new_user;
-            
 
-            
+            // Agregar esta línea para almacenar el nombre de usuario ingresado
+            strncpy(user_name, input, sizeof(user_name));
         }
         else if (op == 2)
         
@@ -209,6 +215,7 @@ int main(int argc, char *argv[])
         chat_sist_os__user_option__pack(&user_option, buffer);
 
         bytes_sent = send(client_fd, buffer, user_option_size, 0);
+
         if (bytes_sent < 0)
         {
             perror("Error al enviar el mensaje al servidor");

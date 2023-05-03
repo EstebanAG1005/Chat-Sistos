@@ -54,26 +54,44 @@ void *client_handler(void *arg)
         if (operation == 1)
         {
             // Crear nuevo usuario
-            strcpy(client->username, user_option->createuser->username);
+            bool username_exists = false;
+            for (int i = 0; i < num_clients; i++)
+            {
+                if (strcmp(clients[i].username, user_option->createuser->username) == 0)
+                {
+                    username_exists = true;
+                    break;
+                }
+            }
 
-            // Creamos el mensaje de respuesta de usuario
-            answer.op = 1;
-            answer.response_status_code = 200;
-            answer.response_message = "Usuario registrado exitosamente.";
-            answer_size = chat_sist_os__answer__get_packed_size(&answer);
-            chat_sist_os__answer__pack(&answer, buffer);
+            if (username_exists)
+            {
+                // El nombre de usuario ya existe
+                answer.op = 1;
+                answer.response_status_code = 400;
+                answer.response_message = "Error: El nombre de usuario ya existe.";
+            }
+            else
+            {
+                // El nombre de usuario está disponible
+                strcpy(client->username, user_option->createuser->username);
+
+                // Creamos el mensaje de respuesta de usuario
+                answer.op = 1;
+                answer.response_status_code = 200;
+                answer.response_message = "Usuario registrado exitosamente.";
+
+                printf("Nuevo usuario creado: %s\n", client->username);
+            }
 
             // Enviamos el mensaje al cliente
+            answer_size = chat_sist_os__answer__get_packed_size(&answer);
+            chat_sist_os__answer__pack(&answer, buffer);
             bytes_sent = send(client_fd, buffer, answer_size, 0);
             if (bytes_sent < 0)
             {
                 perror("Error al enviar el mensaje al cliente");
             }
-
-            printf("Nuevo usuario creado: %s\n", client->username);
-            answer.response_message = malloc(128);
-            sprintf(answer.response_message, "Nuevo usuario creado: %s", client->username);
-            
         }
         else if (operation == 2)
         {
