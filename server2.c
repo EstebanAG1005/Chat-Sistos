@@ -103,7 +103,9 @@ void *client_handler(void *arg)
                     {
                         printf("- Nombre: %s\n", clients[i].username);
                         answer.response_status_code = 200;
-                        answer.response_message = ("- Nombre: %s\n", clients[i].username);
+                        char message[128];
+                        sprintf(message, "- Nombre: %s\n", clients[i].username);
+                        answer.response_message = message;;
                         answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 
@@ -119,12 +121,6 @@ void *client_handler(void *arg)
                     }
                 }
 
-                // Enviamos el mensaje al cliente
-                bytes_sent = send(client_fd, buffer, answer_size, 0);
-                if (bytes_sent < 0)
-                {
-                    perror("Error al enviar el mensaje al cliente");
-                }
             }
             else
             {
