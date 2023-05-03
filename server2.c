@@ -157,8 +157,13 @@ void *client_handler(void *arg)
                             strcpy(estado, "Inactivo");
                         }
                         printf("- Estado: %s\n", estado);
+
+                        // Construir el mensaje de respuesta para el cliente
+                        char response_message[256];
+                        sprintf(response_message, "Información del usuario: %s\n- Nombre: %s\n- Estado: %s\n", target_username, clients[i].username, estado);
+
                         answer.response_status_code = 200;
-                        answer.response_message = ( clients[i].username, estado);
+                        answer.response_message = response_message;
                         answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 
@@ -168,6 +173,7 @@ void *client_handler(void *arg)
                         {
                             perror("Error al enviar el mensaje al cliente");
                         }
+
                         user_found = true;
                         break;
                     }
