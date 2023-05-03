@@ -20,7 +20,7 @@ typedef struct {
     struct sockaddr_in address;
     pthread_t thread_id;
     char username[32];
-    int user_state; // 1 en línea, 2 ocupado, 3 desconectado
+    int user_state ; // 1 en línea, 2 ocupado, 3 desconectado
 } client_t;
 
 client_t clients[MAX_CLIENTS];
@@ -424,6 +424,12 @@ int main()
     }
 
     printf("Servidor iniciado. Esperando clientes...\n");
+
+    // Inicializar el estado del usuario en el servidor
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        clients[i].user_state = 1;
+    }
 
     while ((new_client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_size)))
     {
