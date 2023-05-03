@@ -103,7 +103,21 @@ void *client_handler(void *arg)
                     if (strcmp(clients[i].username, target_username) == 0)
                     {
                         printf("- Nombre: %s\n", clients[i].username);
-                        //cprintf("- Estado: %d\n", clients[i].state);
+                        // Mostrar información actualizada
+                        char estado[20] = "";
+                        if (clients[i].user_state == 1)
+                        {
+                            strcpy(estado, "Activo");
+                        }
+                        else if (clients[i].user_state == 2)
+                        {
+                            strcpy(estado, "Ocupado");
+                        }
+                        else if (clients[i].user_state == 3)
+                        {
+                            strcpy(estado, "Inactivo");
+                        }
+                        printf("- Estado: %s\n", estado);
                         user_found = true;
                         break;
                     }
