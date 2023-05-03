@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
 
     while (1)
     {
+        char user_name[256];
         printf("\n-------------------------------------\n");
         printf("1. Crear nuevo usuario\n");
         printf("2. Ver usuarios \n");
@@ -106,6 +107,8 @@ int main(int argc, char *argv[])
             scanf("%s", input);
             new_user.username = input;
             user_option.createuser = &new_user;
+
+            
 
             
         }
@@ -157,8 +160,6 @@ int main(int argc, char *argv[])
             user_option.status = status;
             
         }
-
-        
             
         else if (op == 4)
         {
@@ -177,15 +178,20 @@ int main(int argc, char *argv[])
                 printf("Ingrese el contenido del mensaje: ");
                 scanf(" %[^\n]", input);
                 message.message_content = input;
-                user_option.message = &message;
+
+                // Asignar el nombre de usuario del emisor al mensaje
+                message.message_sender = strdup(user_name);
             }
             if (private_message == 0)
             {
                 printf("Ingrese el contenido del mensaje: ");
                 scanf(" %[^\n]", input);
                 message.message_content = input;
-                user_option.message = &message;
+
+                // Asignar el nombre de usuario del emisor al mensaje
+                message.message_sender = strdup(user_name);
             }
+            user_option.message = &message;
         }
         else if (op == 5)
         {

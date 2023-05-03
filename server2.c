@@ -211,22 +211,47 @@ void *client_handler(void *arg)
         else if (operation == 4)
         {
             // Enviar mensaje
-            printf("Mensaje de %s", client->username);
+            printf("\nMensaje de %s", client->username);
 
             if (user_option->message->message_private == 1)
             {
                 printf(" para %s", user_option->message->message_destination);
-                printf(": %s\n", user_option->message->message_content);
-                
+            }
+
+            printf(": %s\n", user_option->message->message_content);
+
+            int dest_clients[MAX_CLIENTS];
+            int num_dest_clients = 0;
+            int client_idx = -1;
+
+            // Buscar el cliente que envió el mensaje
+            for (int i = 0; i < num_clients; i++)
+            {
+                if (clients[i].client_fd == client->client_fd)
+                {
+                    client_idx = i;
+                    break;
+                }
+            }
+
+            if (user_option->message->message_private == 1)
+            {
                 // Mensaje privado
                 for (int i = 0; i < num_clients; i++)
                 {
                     if (strcmp(clients[i].username, user_option->message->message_destination) == 0)
                     {
+                        // Agregar al cliente que envió el mensaje a la lista de destinatarios
+                        dest_clients[num_dest_clients++] = i;
+
                         // Creamos el mensaje de respuesta de usuario
                         answer.op = 4;
                         answer.response_status_code = 200;
                         answer.message = user_option->message;
+
+                         // Asignar el nombre de usuario del emisor al mensaje
+                        answer.message->message_sender = strdup(client->username);
+
                         answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 
@@ -242,16 +267,25 @@ void *client_handler(void *arg)
             }
             else if (user_option->message->message_private == 0)
             {
-                printf(": %s\n", user_option->message->message_content);
+                // Enviar una copia del mensaje al cliente que lo envió
+                dest_clients[num_dest_clients++] = client_idx;
+
                 // Mensaje global
                 for (int i = 0; i < num_clients; i++)
                 {
                     if (clients[i].thread_id != 0 && clients[i].client_fd != client->client_fd)
                     {
+                        // Agregar al cliente que envió el mensaje a la lista de destinatarios
+                        dest_clients[num_dest_clients++] = i;
+
                         // Creamos el mensaje de respuesta de usuario
                         answer.op = 4;
                         answer.response_status_code = 200;
                         answer.message = user_option->message;
+
+                         // Asignar el nombre de usuario del emisor al mensaje
+                        answer.message->message_sender = strdup(client->username);
+
                         answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 
@@ -261,9 +295,34 @@ void *client_handler(void *arg)
                         {
                             perror("Error al enviar el mensaje al cliente");
                         }
+                        break;
                     }
                 }
             }
+
+            // Enviar una copia del mensaje al cliente que lo envió
+            for (int i = 0; i < num_dest_clients; i++)
+            {
+                // Creamos el mensaje de respuesta de usuario
+                answer.op = 4;
+                answer.response_status_code = 200;
+                answer.message = user_option->message;
+                
+                // Asignar el nombre de usuario del emisor al mensaje
+                answer.message->message_sender = strdup(client->username);
+
+                answer_size = chat_sist_os__answer__get_packed_size(&answer);
+                chat_sist_os__answer__pack(&answer, buffer);
+
+                // Enviamos el mensaje al cliente
+                bytes_sent = send(clients[i].client_fd, buffer, answer_size, 0);
+                if (bytes_sent < 0)
+                {
+                    perror("Error al enviar el mensaje al cliente");
+                }
+            }
+                
+            
         }
 
 
