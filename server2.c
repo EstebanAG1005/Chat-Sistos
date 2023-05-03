@@ -57,7 +57,11 @@ void *client_handler(void *arg)
             strcpy(client->username, user_option->createuser->username);
 
             // Creamos el mensaje de respuesta de usuario
+            answer.op = 1;
+            answer.response_status_code = 200;
             answer.response_message = "Usuario registrado exitosamente.";
+            answer_size = chat_sist_os__answer__get_packed_size(&answer);
+            chat_sist_os__answer__pack(&answer, buffer);
 
             // Enviamos el mensaje al cliente
             bytes_sent = send(client_fd, buffer, answer_size, 0);
@@ -69,7 +73,7 @@ void *client_handler(void *arg)
             printf("Nuevo usuario creado: %s\n", client->username);
             answer.response_message = malloc(128);
             sprintf(answer.response_message, "Nuevo usuario creado: %s", client->username);
-
+            
         }
         else if (operation == 2)
         {
@@ -81,13 +85,45 @@ void *client_handler(void *arg)
             {
                 // Mostrar lista de todos los usuarios
                 printf("Lista de todos los usuarios:\n");
+                answer.response_status_code = 200;
+                answer.response_message = "Lista de todos los usuarios:\n.";
+                answer_size = chat_sist_os__answer__get_packed_size(&answer);
+                chat_sist_os__answer__pack(&answer, buffer);
+
+                // Enviamos el mensaje al cliente
+                bytes_sent = send(client_fd, buffer, answer_size, 0);
+                if (bytes_sent < 0)
+                {
+                    perror("Error al enviar el mensaje al cliente");
+                }
+
                 for (int i = 0; i < num_clients; i++)
                 {
                     if (clients[i].thread_id != 0)
                     {
                         printf("- Nombre: %s\n", clients[i].username);
+                        answer.response_status_code = 200;
+                        answer.response_message = ("- Nombre: %s\n", clients[i].username);
+                        answer_size = chat_sist_os__answer__get_packed_size(&answer);
+                        chat_sist_os__answer__pack(&answer, buffer);
+
+                        // Enviamos el mensaje al cliente
+                        bytes_sent = send(client_fd, buffer, answer_size, 0);
+                        if (bytes_sent < 0)
+                        {
+                            perror("Error al enviar el mensaje al cliente");
+                        }
+
+                        
                         //printf("- Estado: %d\n", clients[i].state);
                     }
+                }
+
+                // Enviamos el mensaje al cliente
+                bytes_sent = send(client_fd, buffer, answer_size, 0);
+                if (bytes_sent < 0)
+                {
+                    perror("Error al enviar el mensaje al cliente");
                 }
             }
             else
@@ -118,6 +154,17 @@ void *client_handler(void *arg)
                             strcpy(estado, "Inactivo");
                         }
                         printf("- Estado: %s\n", estado);
+                        answer.response_status_code = 200;
+                        answer.response_message = ( clients[i].username, estado);
+                        answer_size = chat_sist_os__answer__get_packed_size(&answer);
+                        chat_sist_os__answer__pack(&answer, buffer);
+
+                        // Enviamos el mensaje al cliente
+                        bytes_sent = send(client_fd, buffer, answer_size, 0);
+                        if (bytes_sent < 0)
+                        {
+                            perror("Error al enviar el mensaje al cliente");
+                        }
                         user_found = true;
                         break;
                     }
@@ -179,7 +226,7 @@ void *client_handler(void *arg)
 
 
                         // Creamos el mensaje de respuesta de usuario
-                        answer.response_message = "Estado cambiado.";
+                        answer.response_message = ("Nuevo estado: %s\n", estado);
                         answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 

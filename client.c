@@ -32,6 +32,8 @@ void *receive_handler(void *arg)
         {
         case 1: // Crear nuevo usuario
         case 2: // Ver usuarios conectados
+            printf("%s\n", answer->response_message);
+            break;
         case 3: // Cambiar estado de usuario
             printf("%s\n", answer->response_message);
             break;
@@ -107,7 +109,6 @@ int main(int argc, char *argv[])
             scanf("%s", input);
             new_user.username = input;
             user_option.createuser = &new_user;
-
             
 
             
