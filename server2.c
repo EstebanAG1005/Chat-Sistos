@@ -298,14 +298,10 @@ void *client_handler(void *arg)
                 {
                     if (strcmp(clients[i].username, user_option->message->message_destination) == 0)
                     {
-                        if (clients[i].user_state == 2) // Usuario ocupado
+                        // Verificar si el estado del destinatario es ocupado (2) o inactivo (3)
+                        if (clients[i].user_state == 2 || clients[i].user_state == 3)
                         {
-                            printf("No se pudo enviar el mensaje. El usuario %s está ocupado.\n", clients[i].username);
-                            break;
-                        }
-                        else if (clients[i].user_state == 3) // Usuario inactivo
-                        {
-                            printf("No se pudo enviar el mensaje. El usuario %s está inactivo.\n", clients[i].username);
+                            // No enviar el mensaje si el destinatario está ocupado o inactivo
                             break;
                         }
 
@@ -343,18 +339,14 @@ void *client_handler(void *arg)
                 {
                     if (clients[i].thread_id != 0 && clients[i].client_fd != client->client_fd)
                     {
-                        if (clients[i].user_state == 2) // Usuario ocupado
+                        // Verificar si el estado del destinatario es ocupado (2) o inactivo (3)
+                        if (clients[i].user_state == 2 || clients[i].user_state == 3)
                         {
-                            printf("No se pudo enviar el mensaje. El usuario %s está ocupado.\n", clients[i].username);
-                            continue;
-                        }
-                        else if (clients[i].user_state == 3) // Usuario inactivo
-                        {
-                            printf("No se pudo enviar el mensaje. El usuario %s está inactivo.\n", clients[i].username);
+                            // No enviar el mensaje si el destinatario está ocupado o inactivo
                             continue;
                         }
 
-                                        // Agregar al cliente que envió el mensaje a la lista de destinatarios
+                        // Agregar al cliente que envió el mensaje a la lista de destinatarios
                         dest_clients[num_dest_clients++] = i;
 
                         // Creamos el mensaje de respuesta de usuario
@@ -365,7 +357,7 @@ void *client_handler(void *arg)
                         // Asignar el nombre de usuario del emisor al mensaje
                         answer.message->message_sender = strdup(client->username);
 
-                        answer_size = chat_sist_os__answer__get_packed_size(&answer);
+                                        answer_size = chat_sist_os__answer__get_packed_size(&answer);
                         chat_sist_os__answer__pack(&answer, buffer);
 
                         // Enviamos el mensaje al cliente
@@ -393,15 +385,13 @@ void *client_handler(void *arg)
                 chat_sist_os__answer__pack(&answer, buffer);
 
                 // Enviamos el mensaje al cliente
-                bytes_sent = send(clients[i].client_fd, buffer, answer_size, 0);
+                bytes_sent = send(clients[dest_clients[i]].client_fd, buffer, answer_size, 0);
                 if (bytes_sent < 0)
                 {
                     perror("Error al enviar el mensaje al cliente");
                 }
             }
         }
-
-
 
         chat_sist_os__user_option__free_unpacked(user_option, NULL);
     }
